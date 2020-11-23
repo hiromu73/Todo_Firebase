@@ -1,6 +1,8 @@
 
 
 
+
+
 //todo_firebase
 
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -22,6 +24,7 @@ class UserState extends ChangeNotifier {
   }
 }
 
+//チャット画面//アプリ起動時の画面
 class ChatApp extends StatelessWidget {
   // ユーザーの情報を管理するデータ
   final UserState userState = UserState();
@@ -80,7 +83,7 @@ class _LoginPageState extends State<LoginPage> {
               // パスワード入力
               TextFormField(
                 decoration: InputDecoration(labelText: 'パスワード'),
-                obscureText: true,
+                obscureText: true,//隠す
                 onChanged: (String value) {
                   setState(() {
                     password = value;
@@ -93,16 +96,16 @@ class _LoginPageState extends State<LoginPage> {
                 child: Text(infoText),
               ),
               Container(
-                width: double.infinity,
+                width: double.infinity,//横いっぱいにユーザー登録ボタン
                 // ユーザー登録ボタン
-                child: RaisedButton(//横いっぱいにユーザー登録ボタン
+                child: RaisedButton(
                   color: Colors.blue,
                   textColor: Colors.white,
                   child: Text('ユーザー登録'),
                   onPressed: () async {//非同期で行う
                     try {
                       // メール/パスワードでユーザー登録
-                      final FirebaseAuth auth = FirebaseAuth.instance;//インスタンス作成
+                      final FirebaseAuth auth = FirebaseAuth.instance;
                       final AuthResult result =
                       await auth.createUserWithEmailAndPassword(//ユーザー登録をする
                         email: email,
@@ -113,7 +116,7 @@ class _LoginPageState extends State<LoginPage> {
                       userState.setUser(user);
                       // ユーザー登録に成功した場合
                       // チャット画面に遷移＋ログイン画面を破棄
-                      await Navigator.of(context).pushReplacement(
+                      await Navigator.of(context).pushReplacement(//現在の画面を破棄して別の画面に遷移できる
                         MaterialPageRoute(builder: (context) {
                           // ユーザー情報を渡す
                           return ChatPage();
@@ -189,7 +192,7 @@ class ChatPage extends StatelessWidget {
               // ログアウト処理
               // 内部で保持しているセッション情報が初期化される
               // （現時点ではログアウト時はこの処理を呼び出せばOKと、思うぐらいで大丈夫です）
-              await FirebaseAuth.instance.signOut();
+              await FirebaseAuth.instance.signOut();//ログアウト
               // ログイン画面に遷移＋チャット画面を破棄
               await Navigator.of(context).pushReplacement(
                 MaterialPageRoute(builder: (context) {
@@ -209,15 +212,17 @@ class ChatPage extends StatelessWidget {
           Expanded(
             // StreamBuilder
             // 非同期処理の結果を元にWidgetを作れる
-            child: StreamBuilder<QuerySnapshot>(//ードの順序関係なく流れてきたデータをキャッチして処理を行う感じ
+            //リアルタイム更新
+            child: StreamBuilder<QuerySnapshot>(//クエリの結果が含まれる。コードの順序関係なく流れてきたデータをキャッチして処理を行う感じ
               // 投稿メッセージ一覧を取得（非同期処理）
               // 投稿日時でソート
               stream: Firestore.instance//表示したいFirestoreの保存先を指定
                   .collection('post')
                   .orderBy('date')
-                  .snapshots(),
+                  .snapshots(),//JSONのようなオブジェクトのプロパティへのアクセスと変換を簡素化
               builder: (context, snapshot) {//streamの引数によりstreamが更新されるたびに呼ばれる
                 // データが取得できた場合
+                //hasData = nul以外のデータが含まれているか
                 if (snapshot.hasData) {
                   final List<DocumentSnapshot> documents =//単一のドキュメントのデータを持つ
                       snapshot.data.documents;
@@ -227,6 +232,7 @@ class ChatPage extends StatelessWidget {
                       IconButton deleteIcon;
                       // 自分の投稿メッセージの場合は削除ボタンを表示
                       if (document['email'] == user.email) {//ドキュメントのEメールとユーザーEメール
+                        //削除ボタン
                         deleteIcon = IconButton(
                           icon: Icon(Icons.delete),
                           onPressed: () async {
@@ -313,7 +319,7 @@ class _AddPostPageState extends State<AddPostPage> {
                 maxLines: 3,
                 onChanged: (String value) {
                   setState(() {
-                    messageText = value;
+                    messageText = value;//入力された値
                   });
                 },
               ),
@@ -331,7 +337,7 @@ class _AddPostPageState extends State<AddPostPage> {
                     await Firestore.instance
                         .collection('post') // コレクションID指定
                         .document() // ドキュメントID自動生成
-                        .setData({
+                        .setData({//データの追加
                       'text': messageText,
                       'email': email,
                       'date': date
